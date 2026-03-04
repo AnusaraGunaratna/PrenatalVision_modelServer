@@ -8,6 +8,7 @@ class Config:
     DEBUG = os.getenv("DEBUG", "True").lower() in ("true", "1", "t")
     PORT = int(os.getenv("PORT", 5000))
     HOST = os.getenv("HOST", "0.0.0.0")
+    API_KEY = os.getenv("API_KEY", "****")
 
     MODEL_PATH_CRL_ORIGINAL_YOLO11 = os.getenv("MODEL_PATH_CRL_ORIGINAL_YOLO11", os.path.join(os.path.dirname(__file__), "weights", "crl_yolo11m_best.pt"))
     MODEL_PATH_CRL_CUSTOM_YOLO11 = os.getenv("MODEL_PATH_CRL_CUSTOM_YOLO11", os.path.join(os.path.dirname(__file__), "weights", "crl_p2_coordattn_best.pt"))

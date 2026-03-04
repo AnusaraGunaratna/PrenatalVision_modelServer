@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, request, jsonify
 from flask_cors import CORS
 from app.api.v1.scan_routes import scan_bp
 from app.api.middleware.error_handler import register_error_handlers
@@ -23,6 +23,15 @@ def create_app():
 
     # Load ML models at startup
     model_manager.load_models(Config)
+
+    # API Key protection(Springboot access control)
+    @app.before_request
+    def verify_api_key():
+        if request.path == '/api/health':
+            return None
+        api_key = request.headers.get('X-API-Key')
+        if api_key != Config.API_KEY:
+            return jsonify({"success": False, "error": {"code": "UNAUTHORIZED", "message": "Invalid or missing API key"}}), 401
 
     @app.route('/api/health', methods=['GET'])
     def health_check():
