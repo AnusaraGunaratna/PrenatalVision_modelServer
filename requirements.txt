@@ -1,0 +1,7 @@
+Flask==3.0.3
+Flask-Cors==4.0.0
+pydantic==2.6.4
+ultralytics==8.2.0
+opencv-python==4.9.0.80
+numpy==1.26.4
+python-dotenv==1.0.1
