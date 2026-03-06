@@ -24,7 +24,14 @@ REFERENCE_SIZES = {
         'default_mm': 15.0,
         'weight': 0.5,
     },
+    'NB': {
+        'dimension': 'max',
+        'expected_mm': {11: 1.8, 12: 2.4, 13: 3.1, 14: 3.8},
+        'default_mm': 2.5,
+        'weight': 0.4,
+    },
 }
+CRL_FETAL_LANDMARKS = {'H', 'B', 'MX', 'MDS', 'MLS', 'AB', 'LV', 'RBP', 'DP', 'NB', 'NT'}
 
 # Image Preprocessing Constants
 CLAHE_CLIP_LIMIT = 3.0
