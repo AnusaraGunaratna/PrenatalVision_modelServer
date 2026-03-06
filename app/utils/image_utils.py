@@ -46,7 +46,7 @@ def draw_annotations(img: np.ndarray, detections: list, measurements: dict) -> n
 
         cv2.rectangle(annotated, (x1, y1), (x2, y2), color, 2)
 
-        label = f'{cls} {conf_val:.0%}'
+        label = cls
         (tw, th), _ = cv2.getTextSize(label, cv2.FONT_HERSHEY_SIMPLEX, 0.5, 1)
         cv2.rectangle(annotated, (x1, y1 - th - 8), (x1 + tw + 4, y1), color, -1)
         cv2.putText(annotated, label, (x1 + 2, y1 - 4),
@@ -68,20 +68,5 @@ def draw_annotations(img: np.ndarray, detections: list, measurements: dict) -> n
             if mtext:
                 cv2.putText(annotated, mtext, (x1, y2 + 18),
                             cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 255), 2)
-
-    # Draw CRL line
-    crl = measurements.get('CRL')
-    if crl:
-        p1_tuple = crl.get('point1')
-        p2_tuple = crl.get('point2')
-        if p1_tuple and p2_tuple:
-            p1 = (int(p1_tuple[0]), int(p1_tuple[1]))
-            p2 = (int(p2_tuple[0]), int(p2_tuple[1]))
-            cv2.line(annotated, p1, p2, (0, 255, 255), 2)
-            cv2.circle(annotated, p1, 5, (0, 255, 255), -1)
-            cv2.circle(annotated, p2, 5, (0, 255, 255), -1)
-            mid = ((p1[0] + p2[0]) // 2 + 10, (p1[1] + p2[1]) // 2)
-            cv2.putText(annotated, f'CRL: {crl.get("length_cm", 0):.2f}cm',
-                        mid, cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 255), 2)
 
     return annotated
