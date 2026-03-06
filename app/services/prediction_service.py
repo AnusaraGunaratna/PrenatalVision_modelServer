@@ -164,3 +164,43 @@ class PredictionService:
             "calibration_ratio": best_calibration,
             "processed_at": datetime.utcnow(),
         }
+
+    @staticmethod
+    def run_auto_mode(img_arr: np.ndarray, ga_weeks: int = None) -> dict:
+        logger.info("AUTO mode: running all 8 models (4 CRL + 4 NT)")
+
+        crl_result = PredictionService.run_all_models(img_arr, 'crl', ga_weeks)
+        nt_result = PredictionService.run_all_models(img_arr, 'nt', ga_weeks)
+
+        crl_structures = set()
+        crl_total_detections = 0
+        for model in crl_result['models_comparison']:
+            for det in model['detections']:
+                crl_structures.add(det['class_name'])
+                crl_total_detections += 1
+
+        nt_structures = set()
+        nt_total_detections = 0
+        for model in nt_result['models_comparison']:
+            for det in model['detections']:
+                nt_structures.add(det['class_name'])
+                nt_total_detections += 1
+
+        logger.info(
+            f"AUTO mode comparison - "
+            f"CRL: {len(crl_structures)} unique structures, {crl_total_detections} total detections | "
+            f"NT: {len(nt_structures)} unique structures, {nt_total_detections} total detections"
+        )
+
+        if len(nt_structures) > len(crl_structures):
+            winner = nt_result
+            winner_type = 'nt'
+        elif len(nt_structures) == len(crl_structures):
+            winner = nt_result if nt_total_detections > crl_total_detections else crl_result
+            winner_type = 'nt' if nt_total_detections > crl_total_detections else 'crl'
+        else:
+            winner = crl_result
+            winner_type = 'crl'
+
+        logger.info(f"AUTO mode selected: {winner_type.upper()}")
+        return winner
