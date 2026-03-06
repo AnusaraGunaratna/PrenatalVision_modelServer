@@ -49,7 +49,10 @@ def analyze_scan():
 
     # Inference 
     try:
-        result = PredictionService.run_all_models(img_arr, scan_type.value, ga_weeks)
+        if scan_type == ScanType.AUTO:
+            result = PredictionService.run_auto_mode(img_arr, ga_weeks)
+        else:
+            result = PredictionService.run_all_models(img_arr, scan_type.value, ga_weeks)
         validated = ScanResponse(**result)
         return jsonify(BaseResponse(success=True, data=validated).model_dump()), 200
     except ValidationError as e:
