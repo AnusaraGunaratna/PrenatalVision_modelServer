@@ -97,7 +97,6 @@ class BiometricCalculator:
 
 
 def auto_calibrate(detections: list, ga_weeks: int = None) -> Tuple[float, list]:
-    """Weighted pixel-to-mm ratio estimation from known anatomical references."""
     estimates, details = [], []
 
     for det in detections:
@@ -173,6 +172,47 @@ class PredictionService:
             if name == primary:
                 best_measurements = measurements
 
+        # Additional detections
+        primary_classes = {d['class_name'] for d in primary_dets}
+        additional_detections = []
+
+        for name, detections in all_model_detections.items():
+            if name == primary:
+                continue
+            for det in detections:
+                cls = det['class_name']
+                if cls not in primary_classes:
+                    existing = next((a for a in additional_detections if a['class_name'] == cls), None)
+                    if existing is None or det['confidence'] > existing['confidence']:
+                        additional_detections = [a for a in additional_detections if a['class_name'] != cls]
+                        additional_detections.append({
+                            "class_name": cls,
+                            "confidence": det['confidence'],
+                            "bbox": det['bbox'],
+                            "source_model": name,
+                        })
+
+        if additional_detections:
+            logger.info(
+                f"Additional detections from supporting models: "
+                f"{[d['class_name'] + ' (' + d['source_model'] + ')' for d in additional_detections]}"
+            )
+
+        additional_measurements = {}
+        if additional_detections:
+            additional_measurements = BiometricCalculator(shared_px_mm).measure_all(
+                additional_detections, scan_type
+            )
+
+        combined_dets = list(primary_dets) + [
+            {"class_name": d["class_name"], "confidence": d["confidence"], "bbox": d["bbox"]}
+            for d in additional_detections
+        ]
+        combined_measurements = {**best_measurements, **additional_measurements}
+        additional_annotated_b64 = image_to_base64(
+            draw_annotations(enhanced_img, combined_dets, combined_measurements)
+        )
+
         return {
             "scan_id": str(uuid.uuid4()),
             "scan_type": scan_type,
@@ -181,6 +221,9 @@ class PredictionService:
             "models_comparison": comparison,
             "best_model_name": primary,
             "best_model_measurements": best_measurements,
+            "additional_detections": additional_detections,
+            "additional_measurements": additional_measurements,
+            "additional_annotated_image_base64": additional_annotated_b64,
             "calibration_ratio": shared_px_mm,
             "processed_at": datetime.utcnow(),
         }
