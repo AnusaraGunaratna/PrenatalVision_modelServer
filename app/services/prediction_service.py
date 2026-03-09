@@ -9,9 +9,6 @@ from app.utils.image_utils import enhance_ultrasound_image, image_to_base64, dra
 
 logger = logging.getLogger(__name__)
 
-# The primary model used
-PRIMARY_MODEL = "Custom YOLO11"
-
 
 class BiometricCalculator:
     def __init__(self, pixel_to_mm: float = 0.15):
@@ -54,19 +51,19 @@ class BiometricCalculator:
                 measurements['NT'] = {
                     **base,
                     'thickness_mm': round(h_mm * NT_BOX_CORRECTION, 2),
-                    'approximate': True, 
+                    'approximate': True,
                 }
             elif cls == 'NB':
                 measurements['NB'] = {**base, 'length_mm': round(max(w_mm, h_mm), 2)}
             elif cls == 'H':
-                a, b = w_mm / 2.0, h_mm / 2.0  
+                a, b = w_mm / 2.0, h_mm / 2.0
                 measurements['Head'] = {
                     **base,
-                    'BPD_mm': round(min(w_mm, h_mm), 2),       
+                    'BPD_mm': round(min(w_mm, h_mm), 2),
                     'HC_mm': round(self._ramanujan_ellipse_circumference(a, b), 2),
                 }
             elif cls == 'AB':
-                a, b = w_mm / 2.0, h_mm / 2.0  
+                a, b = w_mm / 2.0, h_mm / 2.0
                 measurements['Abdomen'] = {
                     **base,
                     'circumference_mm': round(self._ramanujan_ellipse_circumference(a, b), 2),
@@ -124,6 +121,23 @@ def auto_calibrate(detections: list, ga_weeks: int = None) -> Tuple[float, list]
     return round(sum(r * w for r, w in estimates) / total_w, 5), details
 
 
+def _select_best_detections(all_model_detections: dict) -> list:
+    best_per_class: dict = {}
+
+    for model_name, detections in all_model_detections.items():
+        for det in detections:
+            cls = det['class_name']
+            if cls not in best_per_class or det['confidence'] > best_per_class[cls]['confidence']:
+                best_per_class[cls] = {
+                    "class_name": cls,
+                    "confidence": det['confidence'],
+                    "bbox": det['bbox'],
+                    "source_model": model_name,
+                }
+
+    return list(best_per_class.values())
+
+
 class PredictionService:
 
     @staticmethod
@@ -136,9 +150,8 @@ class PredictionService:
         if not models:
             raise RuntimeError(f"No {scan_type.upper()} models found in app/weights/")
 
-        primary = PRIMARY_MODEL if PRIMARY_MODEL in models else list(models.keys())[0]
-
-        all_model_detections = {}
+        # Run inference on all models 
+        all_model_detections: dict = {}
         for name, model in models.items():
             results = model.predict(enhanced_img, conf=CONF_THRESHOLD, verbose=False)[0]
             detections = []
@@ -151,79 +164,44 @@ class PredictionService:
                 })
             all_model_detections[name] = detections
 
-        primary_dets = all_model_detections.get(primary, [])
-        shared_px_mm, _ = auto_calibrate(primary_dets, ga_weeks)
-        logger.info(f"Shared calibration ratio: {shared_px_mm} mm/px (from {primary})")
+        best_detections = _select_best_detections(all_model_detections)
+        logger.info(
+            f"Best detections ({len(best_detections)}): "
+            f"{[d['class_name'] + ' (' + d['source_model'] + ', ' + str(round(d['confidence'] * 100, 1)) + '%)' for d in best_detections]}"
+        )
+
+        shared_px_mm, _ = auto_calibrate(best_detections, ga_weeks)
+        logger.info(f"Calibration ratio: {shared_px_mm} mm/px")
+
+        calculator = BiometricCalculator(shared_px_mm)
+        best_measurements = calculator.measure_all(best_detections, scan_type)
+
+        annotated_b64 = image_to_base64(
+            draw_annotations(enhanced_img, best_detections, best_measurements)
+        )
 
         comparison = []
-        best_measurements = {}
-
         for name, detections in all_model_detections.items():
-            measurements = BiometricCalculator(shared_px_mm).measure_all(detections, scan_type)
-            annotated_b64 = image_to_base64(draw_annotations(enhanced_img, detections, measurements))
-
+            model_measurements = calculator.measure_all(detections, scan_type)
+            model_annotated_b64 = image_to_base64(
+                draw_annotations(enhanced_img, detections, model_measurements)
+            )
             comparison.append({
                 "model_name": name,
                 "detections": detections,
-                "measurements": measurements,
-                "annotated_image_base64": annotated_b64,
+                "measurements": model_measurements,
+                "annotated_image_base64": model_annotated_b64,
             })
-
-            if name == primary:
-                best_measurements = measurements
-
-        # Additional detections
-        primary_classes = {d['class_name'] for d in primary_dets}
-        additional_detections = []
-
-        for name, detections in all_model_detections.items():
-            if name == primary:
-                continue
-            for det in detections:
-                cls = det['class_name']
-                if cls not in primary_classes:
-                    existing = next((a for a in additional_detections if a['class_name'] == cls), None)
-                    if existing is None or det['confidence'] > existing['confidence']:
-                        additional_detections = [a for a in additional_detections if a['class_name'] != cls]
-                        additional_detections.append({
-                            "class_name": cls,
-                            "confidence": det['confidence'],
-                            "bbox": det['bbox'],
-                            "source_model": name,
-                        })
-
-        if additional_detections:
-            logger.info(
-                f"Additional detections from supporting models: "
-                f"{[d['class_name'] + ' (' + d['source_model'] + ')' for d in additional_detections]}"
-            )
-
-        additional_measurements = {}
-        if additional_detections:
-            additional_measurements = BiometricCalculator(shared_px_mm).measure_all(
-                additional_detections, scan_type
-            )
-
-        combined_dets = list(primary_dets) + [
-            {"class_name": d["class_name"], "confidence": d["confidence"], "bbox": d["bbox"]}
-            for d in additional_detections
-        ]
-        combined_measurements = {**best_measurements, **additional_measurements}
-        additional_annotated_b64 = image_to_base64(
-            draw_annotations(enhanced_img, combined_dets, combined_measurements)
-        )
 
         return {
             "scan_id": str(uuid.uuid4()),
             "scan_type": scan_type,
             "original_image_base64": original_b64,
             "enhanced_image_base64": enhanced_b64,
+            "detections": best_detections,
+            "measurements": best_measurements,
+            "annotated_image_base64": annotated_b64,
             "models_comparison": comparison,
-            "best_model_name": primary,
-            "best_model_measurements": best_measurements,
-            "additional_detections": additional_detections,
-            "additional_measurements": additional_measurements,
-            "additional_annotated_image_base64": additional_annotated_b64,
             "calibration_ratio": shared_px_mm,
             "processed_at": datetime.utcnow(),
         }
