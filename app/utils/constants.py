@@ -5,6 +5,10 @@ CONF_THRESHOLD = 0.25
 NT_BOX_CORRECTION = 0.40
 
 # Reference sizes for anatomical auto-calibration at 11-14 weeks GA (in mm)
+# Clinical References:
+# - Head (H), Abdomen (AB): Hadlock FP, et al. Fetal biometry guidelines.
+# - Nasal Bone (NB): Cicero S, et al. Ultrasound in Obstetrics & Gynecology (Fetal Medicine Foundation).
+# - Cranium (C): Approximated from standard cranial vault dimensions at first trimester.
 REFERENCE_SIZES = {
     'H': {
         'dimension': 'max',
