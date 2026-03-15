@@ -160,13 +160,19 @@ class PredictionService:
                 detections.append({
                     "class_name": model.names[cls_id],
                     "confidence": round(float(box.conf[0]), 4),
-                    "bbox": list(map(float, box.xyxy[0].cpu().numpy()))
+                    "bbox": list(map(float, box.xyxy[0].cpu().numpy())),
+                    "source_model": name
                 })
             all_model_detections[name] = detections
 
-        best_detections = _select_best_detections(all_model_detections)
+        # Using Ensemble Aggregation
+        if all_model_detections:
+            best_detections = _select_best_detections(all_model_detections)
+        else:
+            best_detections = []
+
         logger.info(
-            f"Best detections ({len(best_detections)}): "
+            f"Ensemble detections ({len(best_detections)}): "
             f"{[d['class_name'] + ' (' + d['source_model'] + ', ' + str(round(d['confidence'] * 100, 1)) + '%)' for d in best_detections]}"
         )
 
@@ -208,7 +214,7 @@ class PredictionService:
 
     @staticmethod
     def run_auto_mode(img_arr: np.ndarray, ga_weeks: int = None) -> dict:
-        logger.info("AUTO mode: running all 8 models (4 CRL + 4 NT)")
+        logger.info("AUTO mode: running all 10 models (5 CRL + 5 NT)")
 
         crl_result = PredictionService.run_all_models(img_arr, 'crl', ga_weeks)
         nt_result = PredictionService.run_all_models(img_arr, 'nt', ga_weeks)
