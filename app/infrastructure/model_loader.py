@@ -6,6 +6,7 @@ import torch
 from ultralytics import YOLO
 from typing import Dict, Any
 from app.infrastructure.coordinate_attention import CoordinateAttention
+from app.infrastructure.learnable_despeckling import LearnableDespeckling
 
 _original_torch_load = torch.load
 @functools.wraps(_original_torch_load)
@@ -16,16 +17,21 @@ torch.load = _patched_torch_load
 
 import __main__
 __main__.CoordinateAttention = CoordinateAttention
+__main__.LearnableDespeckling = LearnableDespeckling
 
 import ultralytics.nn.modules as _modules
 import ultralytics.nn.tasks as _tasks
 _modules.CoordinateAttention = CoordinateAttention
 _tasks.CoordinateAttention = CoordinateAttention
+_modules.LearnableDespeckling = LearnableDespeckling
+_tasks.LearnableDespeckling = LearnableDespeckling
 
 if hasattr(_modules, 'conv'):
     _modules.conv.CoordinateAttention = CoordinateAttention
+    _modules.conv.LearnableDespeckling = LearnableDespeckling
 if hasattr(_modules, 'block'):
     _modules.block.CoordinateAttention = CoordinateAttention
+    _modules.block.LearnableDespeckling = LearnableDespeckling
 
 logger = logging.getLogger(__name__)
 
@@ -44,17 +50,19 @@ class ModelManager:
 
     def load_models(self, config):
         crl_paths = {
-            "Original YOLO11": config.MODEL_PATH_CRL_ORIGINAL_YOLO11,
-            "Custom YOLO11": config.MODEL_PATH_CRL_CUSTOM_YOLO11,
-            "Original YOLO8": config.MODEL_PATH_CRL_ORIGINAL_YOLO8,
-            "Custom YOLO8 (P2)": config.MODEL_PATH_CRL_CUSTOM_YOLO8,
+            "HybridNet": config.MODEL_PATH_CRL_HYBRIDNET,
+            "CoordNet": config.MODEL_PATH_CRL_COORDNET,
+            "LDBNet": config.MODEL_PATH_CRL_LDBNET,
+            "Original YOLO8": config.MODEL_PATH_CRL_YOLO8,
+            "Original YOLO11": config.MODEL_PATH_CRL_YOLO11,
         }
 
         nt_paths = {
-            "Original YOLO11": config.MODEL_PATH_NT_ORIGINAL_YOLO11,
-            "Custom YOLO11": config.MODEL_PATH_NT_CUSTOM_YOLO11,
-            "Original YOLO8": config.MODEL_PATH_NT_ORIGINAL_YOLO8,
-            "Custom YOLO8 (P2)": config.MODEL_PATH_NT_CUSTOM_YOLO8,
+            "HybridNet": config.MODEL_PATH_NT_HYBRIDNET,
+            "CoordNet": config.MODEL_PATH_NT_COORDNET,
+            "LDBNet": config.MODEL_PATH_NT_LDBNET,
+            "Original YOLO8": config.MODEL_PATH_NT_YOLO8,
+            "Original YOLO11": config.MODEL_PATH_NT_YOLO11,
         }
 
         self._load_group(crl_paths, self._crl_models, "CRL")
