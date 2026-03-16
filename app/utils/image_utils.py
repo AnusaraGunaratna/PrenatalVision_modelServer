@@ -52,21 +52,5 @@ def draw_annotations(img: np.ndarray, detections: list, measurements: dict) -> n
         cv2.putText(annotated, label, (x1 + 2, y1 - 4),
                     cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
 
-        m = measurements.get(cls)
-        if m:
-            if m.get('thickness_mm'):
-                mtext = f'{m["thickness_mm"]:.2f}mm'
-            elif m.get('length_mm') and cls == 'NB':
-                mtext = f'{m["length_mm"]:.2f}mm'
-            elif m.get('BPD_mm'):
-                mtext = f'BPD:{m["BPD_mm"]:.1f}mm'
-            elif m.get('dimension_mm'):
-                mtext = m['dimension_mm']
-            else:
-                mtext = None
-
-            if mtext:
-                cv2.putText(annotated, mtext, (x1, y2 + 18),
-                            cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 255), 2)
 
     return annotated
