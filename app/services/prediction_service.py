@@ -147,7 +147,7 @@ class PredictionService:
         enhanced_img = enhance_ultrasound_image(img_arr)
         enhanced_b64 = image_to_base64(enhanced_img)
 
-        model_names = ["PV-Hybrid", "PV-Coord", "PV-LDB", "YOLO8", "YOLO11"]
+        model_names = ["PV-Hybrid", "PV-Coord", "PV-LDB", "YOLO8", "YOLO11"] 
         all_model_detections: dict = {}
         
         for name in model_names:

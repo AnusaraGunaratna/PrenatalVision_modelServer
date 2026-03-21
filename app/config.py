@@ -9,19 +9,18 @@ class Config:
     PORT = int(os.getenv("PORT", 5000))
     HOST = os.getenv("HOST", "0.0.0.0")
     API_KEY = os.getenv("API_KEY", "***")
-    
-    # Azure Storage for Models
-    AZURE_STORAGE_CONNECTION_STRING = os.getenv("AZURE_STORAGE_CONNECTION_STRING", "***")
-    MODEL_CONTAINER_NAME = os.getenv("MODEL_CONTAINER_NAME", "***")
 
-    MODEL_PATH_CRL_HYBRID = os.getenv("MODEL_PATH_CRL_HYBRID", os.path.join(os.path.dirname(__file__), "weights", "crl_hybrid.pt"))
-    MODEL_PATH_CRL_PVNET = os.getenv("MODEL_PATH_CRL_PVNET", os.path.join(os.path.dirname(__file__), "weights", "crl_pvnet.pt"))
-    MODEL_PATH_CRL_LDB = os.getenv("MODEL_PATH_CRL_LDB", os.path.join(os.path.dirname(__file__), "weights", "crl_ldb.pt"))
-    MODEL_PATH_CRL_YOLO8 = os.getenv("MODEL_PATH_CRL_YOLO8", os.path.join(os.path.dirname(__file__), "weights", "crl_yolo8.pt"))
-    MODEL_PATH_CRL_YOLO11 = os.getenv("MODEL_PATH_CRL_YOLO11", os.path.join(os.path.dirname(__file__), "weights", "crl_yolo11.pt"))
+    BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    WEIGHTS_DIR = os.path.join(BASE_DIR, "weights")
 
-    MODEL_PATH_NT_HYBRID = os.getenv("MODEL_PATH_NT_HYBRID", os.path.join(os.path.dirname(__file__), "weights", "nt_hybrid.pt"))
-    MODEL_PATH_NT_PVNET = os.getenv("MODEL_PATH_NT_PVNET", os.path.join(os.path.dirname(__file__), "weights", "nt_pvnet.pt"))
-    MODEL_PATH_NT_LDB = os.getenv("MODEL_PATH_NT_LDB", os.path.join(os.path.dirname(__file__), "weights", "nt_ldb.pt"))
-    MODEL_PATH_NT_YOLO8 = os.getenv("MODEL_PATH_NT_YOLO8", os.path.join(os.path.dirname(__file__), "weights", "nt_yolo8.pt"))
-    MODEL_PATH_NT_YOLO11 = os.getenv("MODEL_PATH_NT_YOLO11", os.path.join(os.path.dirname(__file__), "weights", "nt_yolo11.pt"))
+    MODEL_PATH_CRL_HYBRID = os.getenv("MODEL_PATH_CRL_HYBRID", os.path.join(WEIGHTS_DIR, "crl_hybrid.pt"))
+    MODEL_PATH_CRL_PVNET = os.getenv("MODEL_PATH_CRL_PVNET", os.path.join(WEIGHTS_DIR, "crl_pvnet.pt"))
+    MODEL_PATH_CRL_LDB = os.getenv("MODEL_PATH_CRL_LDB", os.path.join(WEIGHTS_DIR, "crl_ldb.pt"))
+    MODEL_PATH_CRL_YOLO8 = os.getenv("MODEL_PATH_CRL_YOLO8", os.path.join(WEIGHTS_DIR, "crl_yolo8.pt"))
+    MODEL_PATH_CRL_YOLO11 = os.getenv("MODEL_PATH_CRL_YOLO11", os.path.join(WEIGHTS_DIR, "crl_yolo11.pt"))
+
+    MODEL_PATH_NT_HYBRID = os.getenv("MODEL_PATH_NT_HYBRID", os.path.join(WEIGHTS_DIR, "nt_hybrid.pt"))
+    MODEL_PATH_NT_PVNET = os.getenv("MODEL_PATH_NT_PVNET", os.path.join(WEIGHTS_DIR, "nt_pvnet.pt"))
+    MODEL_PATH_NT_LDB = os.getenv("MODEL_PATH_NT_LDB", os.path.join(WEIGHTS_DIR, "nt_ldb.pt"))
+    MODEL_PATH_NT_YOLO8 = os.getenv("MODEL_PATH_NT_YOLO8", os.path.join(WEIGHTS_DIR, "nt_yolo8.pt"))
+    MODEL_PATH_NT_YOLO11 = os.getenv("MODEL_PATH_NT_YOLO11", os.path.join(WEIGHTS_DIR, "nt_yolo11.pt"))
