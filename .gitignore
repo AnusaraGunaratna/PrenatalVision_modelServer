@@ -1,0 +1,51 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+venv/
+env/
+.venv/
+.env/
+
+# Environment variables
+.env
+
+# IDE / Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS generated
+Thumbs.db
+Desktop.ini
+.DS_Store
+
+# Distribution / packaging
+dist/
+build/
+*.egg-info/
+*.egg
+
+# Model weights (large files - track with Git LFS or download separately)
+# Uncomment the line below if you do NOT want to track weights in git:
+# app/weights/*.pt
+
+# Logs
+*.log
+
+# Pytest / testing
+.pytest_cache/
+htmlcov/
+.coverage
+
+# Misc
+*.bak
+*.tmp
+
+# Model weights / trained models (ignore all large files)
+models/
+*.pt

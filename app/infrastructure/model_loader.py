@@ -1,0 +1,87 @@
+import os
+import sys
+import logging
+import functools
+import torch
+from ultralytics import YOLO
+from typing import Dict, Any
+from app.infrastructure.coordinate_attention import CoordinateAttention
+from app.infrastructure.learnable_despeckling import LearnableDespeckling
+
+_original_torch_load = torch.load
+@functools.wraps(_original_torch_load)
+def _patched_torch_load(*args, **kwargs):
+    kwargs.setdefault('weights_only', False)
+    return _original_torch_load(*args, **kwargs)
+torch.load = _patched_torch_load
+
+import __main__
+__main__.CoordinateAttention = CoordinateAttention
+__main__.LearnableDespeckling = LearnableDespeckling
+
+import ultralytics.nn.modules as _modules
+import ultralytics.nn.tasks as _tasks
+_modules.CoordinateAttention = CoordinateAttention
+_tasks.CoordinateAttention = CoordinateAttention
+_modules.LearnableDespeckling = LearnableDespeckling
+_tasks.LearnableDespeckling = LearnableDespeckling
+
+if hasattr(_modules, 'conv'):
+    _modules.conv.CoordinateAttention = CoordinateAttention
+    _modules.conv.LearnableDespeckling = LearnableDespeckling
+if hasattr(_modules, 'block'):
+    _modules.block.CoordinateAttention = CoordinateAttention
+    _modules.block.LearnableDespeckling = LearnableDespeckling
+
+logger = logging.getLogger(__name__)
+
+class ModelManager:
+    """Singleton manager to load and cache YOLO models."""
+    _instance = None
+    _crl_models: Dict[str, Any] = {}
+    _nt_models: Dict[str, Any] = {}
+
+    def __new__(cls):
+        if cls._instance is None:
+            cls._instance = super(ModelManager, cls).__new__(cls)
+            cls._instance._crl_models = {}
+            cls._instance._nt_models = {}
+        return cls._instance
+
+    def load_models(self, config):
+        crl_paths = {
+            "PV-Hybrid": config.MODEL_PATH_CRL_HYBRID,
+            "PV-Coord": config.MODEL_PATH_CRL_PVNET,
+            "PV-LDB": config.MODEL_PATH_CRL_LDB,
+            "YOLO8": config.MODEL_PATH_CRL_YOLO8,
+            "YOLO11": config.MODEL_PATH_CRL_YOLO11,
+        }
+
+        nt_paths = {
+            "PV-Hybrid": config.MODEL_PATH_NT_HYBRID,
+            "PV-Coord": config.MODEL_PATH_NT_PVNET,
+            "PV-LDB": config.MODEL_PATH_NT_LDB,
+            "YOLO8": config.MODEL_PATH_NT_YOLO8,
+            "YOLO11": config.MODEL_PATH_NT_YOLO11,
+        }
+
+        self._load_group(crl_paths, self._crl_models, "CRL")
+        self._load_group(nt_paths, self._nt_models, "NT")
+
+    def _load_group(self, paths_dict, target_dict, group_name):
+        for name, path in paths_dict.items():
+            if os.path.exists(path):
+                try:
+                    logger.info(f"Loading {group_name} {name} from {path}...")
+                    target_dict[name] = YOLO(path)
+                except Exception as e:
+                    logger.error(f"Failed to load {group_name} {name} from {path}: {str(e)}")
+            else:
+                logger.warning(f"Model path not found for {group_name} {name}: {path}")
+
+    def get_models_for_task(self, task: str) -> Dict[str, Any]:
+        if task.lower() == 'nt':
+            return self._nt_models
+        return self._crl_models
+
+model_manager = ModelManager()
