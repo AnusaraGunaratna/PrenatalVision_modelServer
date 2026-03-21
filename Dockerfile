@@ -22,5 +22,9 @@ RUN mkdir -p logs
 # Expose the API port
 EXPOSE 5000
 
+# Set Python Path to root and ensure logs are not buffered
+ENV PYTHONPATH=.
+ENV PYTHONUNBUFFERED=1
+
 # Use gunicorn for production
 CMD ["gunicorn", "--bind", "0.0.0.0:5000", "--timeout", "600", "--workers", "1", "app.main:app"]
