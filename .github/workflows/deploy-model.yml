@@ -34,6 +34,6 @@ jobs:
       - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v3
         with:
-          app-name: 'prenatalvision-dl-dcacc5a5cddsdff7'
+          app-name: 'prenatalvision-dl'
           publish-profile: ${{ secrets.AZURE_DL_PUBLISH_PROFILE }}
           images: ${{ steps.build_image.outputs.tag }}
