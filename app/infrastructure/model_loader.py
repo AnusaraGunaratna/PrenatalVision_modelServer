@@ -50,19 +50,19 @@ class ModelManager:
 
     def load_models(self, config):
         crl_paths = {
-            "HybridNet": config.MODEL_PATH_CRL_HYBRIDNET,
-            "CoordNet": config.MODEL_PATH_CRL_COORDNET,
-            "LDBNet": config.MODEL_PATH_CRL_LDBNET,
-            "Original YOLO8": config.MODEL_PATH_CRL_YOLO8,
-            "Original YOLO11": config.MODEL_PATH_CRL_YOLO11,
+            "PV-Hybrid": config.MODEL_PATH_CRL_HYBRID,
+            "PV-Coord": config.MODEL_PATH_CRL_PVNET,
+            "PV-LDB": config.MODEL_PATH_CRL_LDB,
+            "YOLO8": config.MODEL_PATH_CRL_YOLO8,
+            "YOLO11": config.MODEL_PATH_CRL_YOLO11,
         }
 
         nt_paths = {
-            "HybridNet": config.MODEL_PATH_NT_HYBRIDNET,
-            "CoordNet": config.MODEL_PATH_NT_COORDNET,
-            "LDBNet": config.MODEL_PATH_NT_LDBNET,
-            "Original YOLO8": config.MODEL_PATH_NT_YOLO8,
-            "Original YOLO11": config.MODEL_PATH_NT_YOLO11,
+            "PV-Hybrid": config.MODEL_PATH_NT_HYBRID,
+            "PV-Coord": config.MODEL_PATH_NT_PVNET,
+            "PV-LDB": config.MODEL_PATH_NT_LDB,
+            "YOLO8": config.MODEL_PATH_NT_YOLO8,
+            "YOLO11": config.MODEL_PATH_NT_YOLO11,
         }
 
         self._load_group(crl_paths, self._crl_models, "CRL")

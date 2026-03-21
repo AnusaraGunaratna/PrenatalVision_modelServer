@@ -4,6 +4,7 @@ from app.api.v1.scan_routes import scan_bp
 from app.api.middleware.error_handler import register_error_handlers
 from app.infrastructure.model_loader import model_manager
 from app.config import Config
+from app.utils.model_downloader import ModelDownloader
 import logging
 
 def create_app():
@@ -20,6 +21,10 @@ def create_app():
 
     # Setup basic logging
     logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+
+    # Download ML models from Azure if missing
+    downloader = ModelDownloader(Config.AZURE_STORAGE_CONNECTION_STRING, Config.MODEL_CONTAINER_NAME)
+    downloader.download_models()
 
     # Load ML models at startup
     model_manager.load_models(Config)
