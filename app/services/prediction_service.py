@@ -4,6 +4,7 @@ import logging
 from datetime import datetime
 from typing import Tuple
 from app.infrastructure.model_loader import model_manager
+from app.config import Config
 from app.utils.constants import CONF_THRESHOLD, NT_BOX_CORRECTION, REFERENCE_SIZES, CRL_FETAL_LANDMARKS
 from app.utils.image_utils import enhance_ultrasound_image, image_to_base64, draw_annotations
 
@@ -146,13 +147,15 @@ class PredictionService:
         enhanced_img = enhance_ultrasound_image(img_arr)
         enhanced_b64 = image_to_base64(enhanced_img)
 
-        models = model_manager.get_models_for_task(scan_type)
-        if not models:
-            raise RuntimeError(f"No {scan_type.upper()} models found in app/weights/")
-
-        # Run inference on all models 
+        model_names = ["PV-Hybrid", "PV-Coord", "PV-LDB", "YOLO8", "YOLO11"]
         all_model_detections: dict = {}
-        for name, model in models.items():
+        
+        for name in model_names:
+            model = model_manager.get_model(scan_type, name, Config)
+            if model is None:
+                logger.warning(f"Skipping model {name} as it could not be loaded")
+                continue
+                
             results = model.predict(enhanced_img, conf=CONF_THRESHOLD, verbose=False)[0]
             detections = []
             for box in results.boxes:
