@@ -10,7 +10,7 @@ class Config:
     HOST = os.getenv("HOST", "0.0.0.0")
     API_KEY = os.getenv("API_KEY", "***")
 
-    BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
     WEIGHTS_DIR = os.path.join(BASE_DIR, "weights")
 
     MODEL_PATH_CRL_HYBRID = os.getenv("MODEL_PATH_CRL_HYBRID", os.path.join(WEIGHTS_DIR, "crl_hybrid.pt"))

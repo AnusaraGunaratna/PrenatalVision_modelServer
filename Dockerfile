@@ -22,7 +22,7 @@ RUN mkdir -p logs
 # Expose the API port
 EXPOSE 5000
 
-# Set Python Path to root and ensure logs are not buffered
+# Set Python Path and real-time logging
 ENV PYTHONPATH=.
 ENV PYTHONUNBUFFERED=1
 
