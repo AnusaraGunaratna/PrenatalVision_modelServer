@@ -1,11 +1,7 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-from app.api.v1.scan_routes import scan_bp
-from app.api.middleware.error_handler import register_error_handlers
-from app.infrastructure.model_loader import model_manager
-from app.config import Config
-from app.utils.model_downloader import ModelDownloader
 import logging
+from app.config import Config
 
 def create_app():
     app = Flask(__name__)
@@ -13,11 +9,17 @@ def create_app():
 
     CORS(app)
 
+    # Late imports to prevent Circular Dependency/Incomplete package loading in Gunicorn
+    from app.api.v1.scan_routes import scan_bp
+    from app.api.middleware.error_handler import register_error_handlers
+    
     # Register error handlers
     register_error_handlers(app)
 
     # Register blueprints
     app.register_blueprint(scan_bp, url_prefix='/api/v1/scans')
+
+    # Setup basic logging
 
     # Setup basic logging
     logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
