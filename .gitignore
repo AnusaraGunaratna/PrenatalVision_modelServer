@@ -46,6 +46,6 @@ htmlcov/
 *.bak
 *.tmp
 
-# Model weights / trained models (ignore all large files)
-models/
-*.pt
+# Note: Models are now tracked for 'Bake-In' deployment.
+!weights/*.pt
+!app/weights/*.pt
