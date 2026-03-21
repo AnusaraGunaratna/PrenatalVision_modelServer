@@ -2,7 +2,7 @@ FROM python:3.11-slim
 
 # Install system dependencies for OpenCV and YOLO
 RUN apt-get update && apt-get install -y \
-    libgl1-mesa-glx \
+    libgl1 \
     libglib2.0-0 \
     && rm -rf /var/lib/apt/lists/*
 
@@ -23,6 +23,4 @@ RUN mkdir -p logs
 EXPOSE 5000
 
 # Use gunicorn for production
-# CMD ["gunicorn", "--bind", "0.0.0.0:5000", "--timeout", "600", "--workers", "2", "app.main:app"]
-# For debugging/dev or if using flask directly:
-CMD ["python", "-m", "app.main"]
+CMD ["gunicorn", "--bind", "0.0.0.0:5000", "--timeout", "600", "--workers", "1", "app.main:app"]
