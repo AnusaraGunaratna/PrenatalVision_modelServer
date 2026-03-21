@@ -22,12 +22,7 @@ def create_app():
     # Setup basic logging
     logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
-    # Download ML models from Azure if missing
-    downloader = ModelDownloader(Config.AZURE_STORAGE_CONNECTION_STRING, Config.MODEL_CONTAINER_NAME)
-    downloader.download_models()
 
-    # Load ML models at startup
-    model_manager.load_models(Config)
 
     # API Key protection(Springboot access control)
     @app.before_request

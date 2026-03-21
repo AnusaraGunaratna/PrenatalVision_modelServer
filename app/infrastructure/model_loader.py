@@ -7,6 +7,7 @@ from ultralytics import YOLO
 from typing import Dict, Any
 from app.infrastructure.coordinate_attention import CoordinateAttention
 from app.infrastructure.learnable_despeckling import LearnableDespeckling
+from app.utils.model_downloader import ModelDownloader
 
 _original_torch_load = torch.load
 @functools.wraps(_original_torch_load)
@@ -48,40 +49,59 @@ class ModelManager:
             cls._instance._nt_models = {}
         return cls._instance
 
+    def get_model(self, task: str, model_name: str, config) -> Any:
+        """Lazy loading."""
+        cache = self._nt_models if task.lower() == 'nt' else self._crl_models
+        
+        if model_name in cache:
+            return cache[model_name]
+
+        # Define paths mapping
+        paths = {
+            "CRL": {
+                "PV-Hybrid": config.MODEL_PATH_CRL_HYBRID,
+                "PV-Coord": config.MODEL_PATH_CRL_PVNET,
+                "PV-LDB": config.MODEL_PATH_CRL_LDB,
+                "YOLO8": config.MODEL_PATH_CRL_YOLO8,
+                "YOLO11": config.MODEL_PATH_CRL_YOLO11,
+            },
+            "NT": {
+                "PV-Hybrid": config.MODEL_PATH_NT_HYBRID,
+                "PV-Coord": config.MODEL_PATH_NT_PVNET,
+                "PV-LDB": config.MODEL_PATH_NT_LDB,
+                "YOLO8": config.MODEL_PATH_NT_YOLO8,
+                "YOLO11": config.MODEL_PATH_NT_YOLO11,
+            }
+        }
+
+        task_key = task.upper()
+        if task_key not in paths or model_name not in paths[task_key]:
+            logger.error(f"Unknown model request: {task_key} {model_name}")
+            return None
+
+        path = paths[task_key][model_name]
+        
+        # Ensure model is available
+        if not os.path.exists(path):
+            logger.info(f"Model missing locally. Triggering on-demand download for: {model_name}")
+            downloader = ModelDownloader(config.AZURE_STORAGE_CONNECTION_STRING, config.MODEL_CONTAINER_NAME)
+            downloader.download_models()
+
+        if not os.path.exists(path):
+            logger.error(f"Model path still not found after download for {task_key} {model_name}: {path}")
+            return None
+
+        try:
+            logger.info(f"Lazily loading {task_key} {model_name} from {path}...")
+            model = YOLO(path)
+            cache[model_name] = model
+            return model
+        except Exception as e:
+            logger.error(f"Failed to load {task_key} {model_name} from {path}: {str(e)}")
+            return None
+
     def load_models(self, config):
-        crl_paths = {
-            "PV-Hybrid": config.MODEL_PATH_CRL_HYBRID,
-            "PV-Coord": config.MODEL_PATH_CRL_PVNET,
-            "PV-LDB": config.MODEL_PATH_CRL_LDB,
-            "YOLO8": config.MODEL_PATH_CRL_YOLO8,
-            "YOLO11": config.MODEL_PATH_CRL_YOLO11,
-        }
-
-        nt_paths = {
-            "PV-Hybrid": config.MODEL_PATH_NT_HYBRID,
-            "PV-Coord": config.MODEL_PATH_NT_PVNET,
-            "PV-LDB": config.MODEL_PATH_NT_LDB,
-            "YOLO8": config.MODEL_PATH_NT_YOLO8,
-            "YOLO11": config.MODEL_PATH_NT_YOLO11,
-        }
-
-        self._load_group(crl_paths, self._crl_models, "CRL")
-        self._load_group(nt_paths, self._nt_models, "NT")
-
-    def _load_group(self, paths_dict, target_dict, group_name):
-        for name, path in paths_dict.items():
-            if os.path.exists(path):
-                try:
-                    logger.info(f"Loading {group_name} {name} from {path}...")
-                    target_dict[name] = YOLO(path)
-                except Exception as e:
-                    logger.error(f"Failed to load {group_name} {name} from {path}: {str(e)}")
-            else:
-                logger.warning(f"Model path not found for {group_name} {name}: {path}")
-
-    def get_models_for_task(self, task: str) -> Dict[str, Any]:
-        if task.lower() == 'nt':
-            return self._nt_models
-        return self._crl_models
+        """Lazy loading"""
+        logger.info("Model Manager initialized (Lazy Loading enabled).")
 
 model_manager = ModelManager()
