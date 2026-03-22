@@ -13,7 +13,27 @@ jobs:
         with:
           fetch-depth: 0
           lfs: true
-      - name: Push to hub
+      - name: Push to HF (Orphan Push)
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
-        run: git push --force https://ANG2002:$HF_TOKEN@huggingface.co/spaces/ANG2002/prenatal-vision-dl main
+        run: |
+          # 1. Create a temporary folder for the clean deployment
+          mkdir deploy_temp
+          
+          # 2. Copy only the necessary files (avoiding .git and models)
+          cp -r app deploy_temp/
+          cp Dockerfile deploy_temp/
+          cp requirements.txt deploy_temp/
+          cp README.md deploy_temp/
+          
+          # 3. Initialize a fresh, history-less Git repo in the temp folder
+          cd deploy_temp
+          git init
+          git branch -m main
+          git config user.name "Hugging Face Deployment"
+          git config user.email "deploy@prenatalvision.ai"
+          git add .
+          git commit -m "Production deployment (Clean Build)"
+          
+          # 4. Force-push to Hugging Face (local main to remote main)
+          git push --force https://ANG2002:$HF_TOKEN@huggingface.co/spaces/ANG2002/prenatal-vision-dl main:main
