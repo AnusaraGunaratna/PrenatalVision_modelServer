@@ -46,6 +46,7 @@ htmlcov/
 *.bak
 *.tmp
 
-# Note: Models are now tracked for 'Bake-In' deployment.
-!weights/*.pt
-!app/weights/*.pt
+# Ignore Large Models for GitHub (We will upload to Hugging Face directly)
+app/weights/*.pt
+*.pt
+**/weights/*.pt
