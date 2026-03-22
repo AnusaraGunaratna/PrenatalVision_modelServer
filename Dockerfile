@@ -27,4 +27,4 @@ ENV PYTHONPATH=.
 ENV PYTHONUNBUFFERED=1
 
 # Use gunicorn for production
-CMD ["gunicorn", "--bind", "0.0.0.0:7860", "--timeout", "600", "--workers", "1", "app.main:app"]
+CMD ["gunicorn", "--bind", "0.0.0.0:7860", "--timeout", "600", "--workers", "1", "--access-logfile", "-", "app.main:app"]

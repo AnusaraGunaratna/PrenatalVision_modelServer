@@ -7,6 +7,7 @@ from ultralytics import YOLO
 from typing import Dict, Any
 from app.infrastructure.coordinate_attention import CoordinateAttention
 from app.infrastructure.learnable_despeckling import LearnableDespeckling
+from app.utils.model_downloader import download_model_if_missing
 
 _original_torch_load = torch.load
 @functools.wraps(_original_torch_load)
@@ -80,9 +81,9 @@ class ModelManager:
 
         path = paths[task_key][model_name]
         
-        # Ensure model is available
-        if not os.path.exists(path):
-            logger.error(f"Model file missing: {path}. Ensure Azure File Share is correctly mounted to /app/weights.")
+        # Ensure model is available (Auto-download from Azure if missing)
+        if not download_model_if_missing(path, config):
+            logger.error(f"Model file missing and download failed: {path}.")
             return None
 
         try:

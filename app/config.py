@@ -10,8 +10,12 @@ class Config:
     HOST = os.getenv("HOST", "0.0.0.0")
     API_KEY = os.getenv("API_KEY", "***")
 
-    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-    WEIGHTS_DIR = os.path.join(BASE_DIR, "weights")
+    # Azure Storage for Models
+    AZURE_STORAGE_CONNECTION_STRING = os.getenv("AZURE_STORAGE_CONNECTION_STRING")
+    AZURE_MODEL_CONTAINER = os.getenv("AZURE_MODEL_CONTAINER", "pvn-models")
+
+    ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    WEIGHTS_DIR = os.path.join(ROOT_DIR, "weights")
 
     MODEL_PATH_CRL_HYBRID = os.getenv("MODEL_PATH_CRL_HYBRID", os.path.join(WEIGHTS_DIR, "crl_hybrid.pt"))
     MODEL_PATH_CRL_PVNET = os.getenv("MODEL_PATH_CRL_PVNET", os.path.join(WEIGHTS_DIR, "crl_pvnet.pt"))
