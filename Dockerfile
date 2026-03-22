@@ -19,12 +19,12 @@ COPY . .
 # Create logs directory if needed
 RUN mkdir -p logs
 
-# Expose the API port
-EXPOSE 5000
+# Expose the API port Hugging Face
+EXPOSE 7860
 
 # Set Python Path and real-time logging
 ENV PYTHONPATH=.
 ENV PYTHONUNBUFFERED=1
 
 # Use gunicorn for production
-CMD ["gunicorn", "--bind", "0.0.0.0:5000", "--timeout", "600", "--workers", "1", "app.main:app"]
+CMD ["gunicorn", "--bind", "0.0.0.0:7860", "--timeout", "600", "--workers", "1", "app.main:app"]
