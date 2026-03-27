@@ -5,7 +5,11 @@ from datetime import datetime
 from typing import Tuple
 from app.infrastructure.model_loader import model_manager
 from app.config import Config
-from app.utils.constants import CONF_THRESHOLD, NT_BOX_CORRECTION, REFERENCE_SIZES, CRL_FETAL_LANDMARKS
+from app.utils.constants import (
+    CONF_THRESHOLD, NT_BOX_CORRECTION, REFERENCE_SIZES, CRL_FETAL_LANDMARKS,
+    CRL_CALIBRATION_SLOPE, CRL_CALIBRATION_INTERCEPT,
+    NT_CALIBRATION_SLOPE, NT_CALIBRATION_INTERCEPT,
+)
 from app.utils.image_utils import enhance_ultrasound_image, image_to_base64, draw_annotations
 
 logger = logging.getLogger(__name__)
@@ -49,9 +53,12 @@ class BiometricCalculator:
             }
 
             if cls == 'NT':
+                raw_thickness = h_mm * NT_BOX_CORRECTION
+                # Post-prediction linear calibration for NT
+                calibrated_thickness = NT_CALIBRATION_SLOPE * raw_thickness + NT_CALIBRATION_INTERCEPT
                 measurements['NT'] = {
                     **base,
-                    'thickness_mm': round(h_mm * NT_BOX_CORRECTION, 2),
+                    'thickness_mm': round(calibrated_thickness, 2),
                     'approximate': True,
                 }
             elif cls == 'NB':
@@ -85,9 +92,11 @@ class BiometricCalculator:
                         if dist > max_dist:
                             max_dist, p1, p2 = dist, pts[i], pts[j]
 
-                crl_mm = max_dist * self.px
+                raw_crl_mm = max_dist * self.px
+                # Post-prediction linear calibration for CRL
+                calibrated_crl = CRL_CALIBRATION_SLOPE * raw_crl_mm + CRL_CALIBRATION_INTERCEPT
                 measurements['CRL'] = {
-                    'length_mm': round(crl_mm, 2),
+                    'length_mm': round(calibrated_crl, 2),
                     'confidence': min(d['confidence'] for d in fetal_dets),
                 }
 

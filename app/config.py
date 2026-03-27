@@ -8,7 +8,7 @@ class Config:
     DEBUG = os.getenv("DEBUG", "True").lower() in ("true", "1", "t")
     PORT = int(os.getenv("PORT", 5000))
     HOST = os.getenv("HOST", "0.0.0.0")
-    API_KEY = os.getenv("API_KEY", "***")
+    API_KEY = os.getenv("API_KEY", "prenatalvision-internal-service-key")
 
     # Azure Storage for Models
     AZURE_STORAGE_CONNECTION_STRING = os.getenv("AZURE_STORAGE_CONNECTION_STRING")
