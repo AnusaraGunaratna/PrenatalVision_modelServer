@@ -37,6 +37,15 @@ REFERENCE_SIZES = {
 }
 CRL_FETAL_LANDMARKS = {'H', 'B', 'MX', 'MDS', 'MLS', 'AB', 'LV', 'RBP', 'DP', 'NB', 'NT'}
 
+# Post-Prediction Linear Calibration Coefficients 
+# Formula: corrected = slope * raw + intercept
+# CRL: Systematic ~6.4% underestimation bias ==> scale up
+CRL_CALIBRATION_SLOPE     = 1.0924
+CRL_CALIBRATION_INTERCEPT = -0.7712
+# NT: Slight overestimation bias ==> scale down (outliers < 0.5mm excluded)
+NT_CALIBRATION_SLOPE      = 0.5843
+NT_CALIBRATION_INTERCEPT  = 0.5360
+
 # Image Preprocessing Constants
 CLAHE_CLIP_LIMIT = 3.0
 CLAHE_GRID_SIZE = (8, 8)
