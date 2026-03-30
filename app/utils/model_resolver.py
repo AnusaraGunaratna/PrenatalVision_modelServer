@@ -5,25 +5,16 @@ logger = logging.getLogger(__name__)
 
 
 def ensure_model_available(model_path, config):
-    """
-    Unified model resolver:
-    - If the weights file exists locally, use it immediately (local dev).
-    - If not, attempt Azure Blob Storage download (deployed environment).
-    """
-    # 1. Local check 
     if os.path.exists(model_path):
         return True
 
-    # 2. Azure download fallback 
     connection_string = getattr(config, 'AZURE_STORAGE_CONNECTION_STRING', None)
     if not connection_string:
         logger.error(
-            f"Model not found locally at {model_path} and no AZURE_STORAGE_CONNECTION_STRING configured. "
-            f"For local development, place weights in the 'weights/' directory."
+            f"Model not found locally at {model_path}"
         )
         return False
 
-    # Ensure weights directory exists
     weights_dir = os.path.dirname(model_path)
     os.makedirs(weights_dir, exist_ok=True)
 
@@ -43,7 +34,7 @@ def ensure_model_available(model_path, config):
         logger.info(f"Successfully downloaded {blob_name} to {model_path}.")
         return True
     except ImportError:
-        logger.error("azure-storage-blob package not installed. Cannot download models from Azure.")
+        logger.error("azure-storage-blob package not installed")
         return False
     except Exception as e:
         logger.error(f"Failed to download {blob_name} from Azure: {str(e)}")

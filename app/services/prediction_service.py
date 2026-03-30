@@ -21,8 +21,7 @@ class BiometricCalculator:
 
     @staticmethod
     def _ramanujan_ellipse_circumference(a: float, b: float) -> float:
-        """Ramanujan's approximation for the perimeter of an ellipse.
-        a, b are the SEMI-axes (half of width / height in mm)."""
+        """Ramanujan's approximation for the perimeter of an ellipse."""
         h = ((a - b) ** 2) / ((a + b) ** 2) if (a + b) > 0 else 0
         return np.pi * (a + b) * (1 + (3 * h) / (10 + np.sqrt(4 - 3 * h)))
 

@@ -1,16 +1,10 @@
----
-title: Prenatal Vision DL
-emoji: ⚪
-colorFrom: blue
-colorTo: indigo
-sdk: docker
-pinned: false
----
+# PRENATAL_VISION MODEL SERVER 
 
-# Prenatal Vision DL Server
-This is the Deep Learning inference server for the Prenatal Vision project. It hosts multiple YOLO11-based models for CRL and NT detection and measurement in ultrasound images.
+1. Install required Python packages: pip install -r requirements.txt
+2. Setup Model Weights:
+   - Download the model weights zip file.
+   - Extract and copy all .pt files into the "weights" folder inside the project.
+   - Ensure the following files are present: crl_hybrid.pt, crl_pvnet.pt, crl_ldb.pt, crl_yolo8.pt, crl_yolo11.pt, nt_hybrid.pt, nt_pvnet.pt, nt_ldb.pt, nt_yolo8.pt, nt_yolo11.pt.
+3. Configure Environment: Create a .env file and set the SECRET_KEY and API_KEY.
+4. Run the server: python -m app.main.py
 
-## Deployment Features
-- Azure Downloader: Automatically pulls model weights from Azure Blob Storage.
-- Orphan Push: History-less deployment for high performance on Hugging Face.
-- Dockerized: Runs with Gunicorn and Flask for scalable inference.
