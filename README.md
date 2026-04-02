@@ -1,3 +1,13 @@
+---
+title: Prenatal Vision DL
+emoji: ⚪
+colorFrom: blue
+colorTo: indigo
+sdk: docker
+app_port: 7860
+pinned: false
+---
+
 # PRENATAL_VISION MODEL SERVER 
 
 1. Install required Python packages: pip install -r requirements.txt
